@@ -1,6 +1,9 @@
 class Board:
     def __init__(self):
         self.size = 11
+        self.center = (5, 5)
+        self.corners = [(0, 0), (0, 10), (10, 0), (10, 10)]
+
         self.grid = [
             ['C', '.', '.', 'A', 'A', 'A', 'A', 'A', '.', '.', 'C'],
             ['.', '.', '.', '.', '.', 'A', '.', '.', '.', '.', '.'],
@@ -30,25 +33,7 @@ class Board:
         if self.grid[newrow][newcol] != '.':
             return False
 
-        piece = self.grid[currentrow][currentcol]
-        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
-        surrounded = True
-
-        for dr, dc in directions:
-
-            r = currentrow + dr
-            c = currentcol + dc
-
-            if 0 <= r < self.size and 0 <= c < self.size:
-                if self.grid[r][c] != piece or "K":
-                    surrounded = False
-                    break
-            else:
-                surrounded = False
-                break
-
-        if surrounded:
+        if (newrow, newcol) == self.center and self.grid[currentrow][currentcol] != 'K':
             return False
 
         if newrow == currentrow:
@@ -66,17 +51,50 @@ class Board:
                 if self.grid[i][newcol] != '.':
                     return False
             return True
+        return False
 
     def move(self, currentrow, currentcol, newrow, newcol):
         isvalid = self.isvalidmove(currentrow, currentcol, newrow, newcol)
         if isvalid:
             self.grid[newrow][newcol] = self.grid[currentrow][currentcol]
             self.grid[currentrow][currentcol] ='.'
+            self.capturing_opponents(newrow, newcol)
+
+            tr, tc = self.center
+            if self.grid[tr][tc] != 'K':
+                self.grid[tr][tc] = '.'
         else:
             print('invalid move')
 
+    def capturing_opponents(self , r , c):
+        piece = self.grid[r][c]
+
+        if piece == 'K':
+            return
+
+        enemy = 'D' if piece == 'A' else 'A'
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        for dr, dc in directions:
+            r1 , c1 = r + dr, c + dc
+            r2 , c2 = r + 2*dr, c + 2*dc
+
+            if not (0 <= r1 < self.size and 0 <= c1 < self.size):
+                continue
+
+            if self.grid[r1][c1] != enemy:
+                continue
+
+            if 0 <= r2 < self.size and 0 <= c2 < self.size:
+                if self.grid[r2][c2] == piece:
+                    self.grid[r1][c1] = '.'
+
+                elif (r2 , c2) == self.center or (r2 , c2) in self.corners:
+                    self.grid[r1][c1] = '.'
 
 b = Board()
+b.print_board()
+
+b.move(0, 3, 2, 3)   # attacker moves down
 print("                              ")
-b.move(5, 6, 2, 3)
 b.print_board()
