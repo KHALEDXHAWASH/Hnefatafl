@@ -244,6 +244,15 @@ class Board:
 b = Board()
 b.print_board()
 
-b.move(0, 3, 2, 3)   # attacker moves down
-print("                              ")
-b.print_board()
+print(b.eval())
+
+score = b.alphabeta(depth=1, alpha=float('-inf'), beta=float('inf'), maxmin=True)
+print(score)
+
+b.grid[5][5] = '.'
+print(b.eval())
+
+
+
+score2 = b.alphabeta(depth=2, alpha=float('-inf'), beta=float('inf'), maxmin=True)
+print(score2)
