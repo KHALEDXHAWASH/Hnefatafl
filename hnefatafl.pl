@@ -132,7 +132,7 @@ perform_captures(Board, R, C, FinalBoard) :-
         foldl(try_custodial(Board, R, C, Piece, Enemy), Dirs, Board, FinalBoard)
     ).
 
-try_custodial(OrigBoard, R, C, Piece, Enemy, (DR, DC), Acc, NewAcc) :-
+try_custodial(_OrigBoard, R, C, Piece, Enemy, (DR, DC), Acc, NewAcc) :-
     R1 is R + DR, C1 is C + DC,
     R2 is R + 2*DR, C2 is C + 2*DC,
     ( inbound(R1, C1),
@@ -322,33 +322,49 @@ count_adjacent_attackers(Board, KR, KC, Count) :-
     length(Ls, Count).
 
 print_board(Board) :-
-    write('   '), print_col_header(0), nl,
-    write('   '), print_separator, nl,
-    print_rows(Board, 0).
-
-print_col_header(11) :- !.
-print_col_header(C) :-
-    format('~w  ', [C]),
-    C1 is C + 1,
-    print_col_header(C1).
-
-print_separator :- print_dashes(11).
-print_dashes(0) :- !.
-print_dashes(N) :- write('--'), N1 is N-1, print_dashes(N1).
-
-print_rows(_, 11) :- !.
-print_rows(Board, R) :-
-    format('~w |', [R]),
-    nth0_list(R, Board, Row),
-    print_row(Row),
     nl,
-    R1 is R + 1,
-    print_rows(Board, R1).
+    write('    '), print_col_numbers(0), nl,
+    write('   +'), print_horizontal_line(11), write('+'), nl,
+    print_rows_pretty(Board, 0),
+    write('   +'), print_horizontal_line(11), write('+'), nl, nl.
 
-print_row([]).
-print_row([H|T]) :-
-    format('~w ', [H]),
-    print_row(T).
+
+print_col_numbers(11) :- !.
+print_col_numbers(C) :-
+    format('~2w ', [C]),
+    C1 is C + 1,
+    print_col_numbers(C1).
+
+
+print_horizontal_line(0) :- !.
+print_horizontal_line(N) :-
+    write('---'),
+    N1 is N - 1,
+    print_horizontal_line(N1).
+
+
+print_rows_pretty(_, 11) :- !.
+print_rows_pretty(Board, R) :-
+    format('~2w | ', [R]),
+    nth0_list(R, Board, Row),
+    print_pretty_row(Row),
+    write('|'), nl,
+    R1 is R + 1,
+    print_rows_pretty(Board, R1).
+
+
+print_pretty_row([]).
+print_pretty_row([H|T]) :-
+    pretty_symbol(H, S),
+    format('~w  ', [S]),
+    print_pretty_row(T).
+
+
+pretty_symbol(e, '.').
+pretty_symbol(a, 'A').
+pretty_symbol(d, 'D').
+pretty_symbol(k, 'K').
+pretty_symbol(c, 'C').
 
 difficulty_depth(1, 1).
 difficulty_depth(2, 3).
@@ -420,7 +436,7 @@ game_loop(Board, Current, Human, Computer, Depth) :-
         game_loop(NewBoard, Next, Human, Computer, Depth)
     ).
 
-human_turn(Board, Human, NewBoard) :-
+human_turn(Board, _Human, NewBoard) :-
     repeat,
         write('Enter move (FromRow FromCol ToRow ToCol): '),
         read((R, C, NR, NC)),
