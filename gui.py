@@ -9,11 +9,9 @@ class HnefataflGUI:
         self.root = root
         self.root.title("Hnefatafl - Viking Chess")
 
-        # Configure the grid for expansion
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
 
-        # Initialize Prolog
         self.prolog = Prolog()
         try:
             self.prolog.consult("hnefatafl.pl")
@@ -22,26 +20,22 @@ class HnefataflGUI:
             self.root.destroy()
             return
 
-        # 1. User Choices: Difficulty and Side
         self.depth = self.ask_difficulty()
         self.human_player = self.ask_side()
         self.computer_side = 'd' if self.human_player == 'a' else 'a'
 
-        # Game State
         self.size = 11
         self.selected_square = None
-        self.current_player = 'a'  # 'a' always moves first in Hnefatafl
+        self.current_player = 'a'  
         self.board_data = self.get_initial_board()
 
-        # UI Elements
         self.canvas = tk.Canvas(root, bg="#333333")
         self.canvas.grid(row=0, column=0, sticky="nsew")
 
-        # Bindings
+        
         self.canvas.bind("<Button-1>", self.on_square_click)
         self.canvas.bind("<Configure>", lambda e: self.draw_board())
 
-        # If the computer is the Attacker, it needs to move first
         if self.computer_side == 'a':
             self.root.after(1000, self.computer_move)
 
@@ -65,7 +59,7 @@ class HnefataflGUI:
         )
         if choice and choice.lower().strip() in ['a', 'd']:
             return choice.lower().strip()
-        return 'a'  # Default to attacker
+        return 'a' 
 
     def get_initial_board(self):
         result = list(self.prolog.query("initial_board(B)"))
@@ -101,7 +95,6 @@ class HnefataflGUI:
                                             outline="black")
 
     def on_square_click(self, event):
-        # Ignore clicks if it's not the human's turn
         if self.current_player != self.human_player:
             return
 
@@ -117,7 +110,6 @@ class HnefataflGUI:
             self.selected_square = None
         else:
             piece = self.board_data[row][col]
-            # Verify the human is clicking their own pieces
             if (self.human_player == 'a' and piece == 'a') or \
                     (self.human_player == 'd' and piece in ['d', 'k']):
                 self.selected_square = (row, col)
