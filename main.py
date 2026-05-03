@@ -17,6 +17,29 @@ class Board:
             ['.', '.', '.', '.', '.', 'A', '.', '.', '.', '.', '.'],
             ['C', '.', '.', 'A', 'A', 'A', 'A', 'A', '.', '.', 'C']
         ]
+    '''''
+    def inside_sandwich(self, row, col, piece):
+
+        if piece == 'A':
+            enemies = ['D', 'K']
+        else:
+            enemies = ['A']
+
+        left = right = up = down = False
+
+        if col - 1 >= 0:
+            left = self.grid[row][col - 1] in enemies
+
+        if col + 1 < self.size:
+            right = self.grid[row][col + 1] in enemies
+
+        if row - 1 >= 0:
+            up = self.grid[row - 1][col] in enemies
+
+        if row + 1 < self.size:
+            down = self.grid[row + 1][col] in enemies
+        return (left and right) or (up and down)
+                  '''''
 
     def clone_board(self):
         newBoard = Board()
@@ -24,12 +47,27 @@ class Board:
         return newBoard
 
     def print_board(self):
-        print("  " + "  ".join(str(i) for i in range(self.size)))
-        print("   " + "--" * self.size)
+        print("    ", end="")
+        for col in range(self.size):
+            print(f"{col:2}", end=" ")
+        print("\n   +" + "---" * self.size + "+")
         for i, row in enumerate(self.grid):
-            print(f"{i:2} |" + " ".join(row))
+            print(f"{i:2} |", end=" ")
+            for cell in row:
+                if cell == '.':
+                    symbol = '·'
+                elif cell == 'A':
+                    symbol = 'A'
+                elif cell == 'D':
+                    symbol = 'D'
+                elif cell == 'K':
+                    symbol = 'K'
+                else:
+                    symbol = 'C'
+                print(f"{symbol:2}", end=" ")
+            print("|")
+        print("   +" + "---" * self.size + "+")
         print()
-
     def find_king(self):
         for r in range(self.size):
             for c in range(self.size):
@@ -72,18 +110,35 @@ class Board:
             for i in range(currentrow + step, newrow, step):
                 if self.grid[i][newcol] != '.':
                     return False
+
             return True
         return False
 
-    def move(self, currentrow, currentcol, newrow, newcol):
+    def move(self, currentrow, currentcol, newrow, newcol, player):
+
+        piece = self.grid[currentrow][currentcol]
+
+        if player == 'A' and piece != 'A':
+            print('Attackers can only move A pieces')
+            return False
+
+        if player == 'D' and piece not in ['D', 'K']:
+            print('Defenders can only move D/K pieces')
+            return False
+
         isvalid = self.isvalidmove(currentrow, currentcol, newrow, newcol)
+
         if isvalid:
             self.grid[newrow][newcol] = self.grid[currentrow][currentcol]
-            self.grid[currentrow][currentcol] ='.'
+            self.grid[currentrow][currentcol] = '.'
+
             self.capturing_opponents(newrow, newcol)
             self.capture_king()
-        else:
-            print('invalid move')
+
+            return True
+
+        print('invalid move')
+        return False
 
     def capturing_opponents(self , r , c):
         piece = self.grid[r][c]
@@ -106,34 +161,52 @@ class Board:
 
             if 0 <= r2 < self.size and 0 <= c2 < self.size:
                 beyond_is_ally   = self.grid[r2][c2] == piece
-                beyond_is_throne = (r2, c2) == self.center
+                beyond_is_throne = (
+                        (r2, c2) == self.center
+                        and self.grid[r2][c2] == '.'
+                )
                 beyond_is_corner = (r2, c2) in self.corners
                 if beyond_is_ally or beyond_is_throne or beyond_is_corner:
                     self.grid[r1][c1] = '.'
 
     def capture_king(self):
+
         kr, kc = self.find_king()
+
         if kr is None:
             return
+
+        attackers = 0
 
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         for dr, dc in directions:
+
             nr, nc = kr + dr, kc + dc
 
             if not (0 <= nr < self.size and 0 <= nc < self.size):
+                attackers += 1
                 continue
 
             if self.grid[nr][nc] == 'A':
-                continue
+                attackers += 1
 
-            if (nr, nc) == self.center or (nr, nc) in self.corners:
-                continue
+            elif (nr, nc) == self.center:
+                attackers += 1
 
-            return
+            elif (nr, nc) in self.corners:
+                attackers += 1
 
-        self.grid[kr][kc] = '.'
+        if kr == 0 or kr == self.size - 1 or kc == 0 or kc == self.size - 1:
+            needed = 3
+        else:
+            needed = 4
 
+        if (kr, kc) in self.corners:
+            needed = 2
+
+        if attackers >= needed:
+            self.grid[kr][kc] = '.'
 
     def get_winner(self):
         kr, kc = self.find_king()
@@ -172,13 +245,12 @@ class Board:
                             break
 
                         moves.append((r,c,nr, nc))
-
+                        """""
                         if self.grid[nr][nc] != '.':
                             break
-
-                        nr+=dr
-                        nc+=dc
-
+                        """""
+                        nr += dr
+                        nc += dc
         return moves
 
     def simulate_move(self,move):
@@ -226,23 +298,7 @@ class Board:
                     score += 15
         return score
 
-    # AI Helper checks if game ends
-    '''def game_end(self):
-        king_exist=False
 
-        for r in range(self.size):
-            for c in range(self.size):
-                if self.grid[r][c] == 'K':
-                    king_exist =True
-
-                    if (r,c) in self.corners:
-                        return True  # Defender wins
-
-        if not king_exist:
-            return True # Attacker wins
-
-        return False
-    '''
 
     def alphabeta(self, depth, alpha, beta, maxmin):
         if depth==0 or self.game_end()==True:
@@ -322,18 +378,89 @@ def get_str_input(prompt, valid):
 
 
 
+def choose_difficulty():
+
+    print('Choose Difficulty')
+    print('1. Easy')
+    print('2. Medium')
+    print('3. Hard')
+
+    choice = get_int_input('Enter choice: ', [1, 2, 3])
+
+    if choice == 1:
+        return 1
+
+    if choice == 2:
+        return 3
+
+    return 5
+
+def play_game():
+
+    board = Board()
+
+    difficulty = choose_difficulty()
+
+    human = get_str_input('Choose side (A/D): ', ['A', 'D'])
+
+    ai = 'D' if human == 'A' else 'A'
+
+    current = 'A'
+
+    while not board.game_end():
+
+        board.print_board()
+
+        if current == human:
+
+            print(f'Human Turn ({human})')
+
+            while True:
+
+                try:
+                    r1 = int(input('From Row: '))
+                    c1 = int(input('From Col: '))
+                    r2 = int(input('To Row: '))
+                    c2 = int(input('To Col: '))
+
+                    success = board.move(r1, c1, r2, c2, human)
+
+                    if success:
+                        break
+
+                except:
+                    print('Invalid Input')
+
+        else:
+
+            print('Computer Thinking...')
+
+            move = board.best_move(difficulty, ai)
+
+            if move is None:
+                print('No possible moves')
+                break
+
+            r1, c1, r2, c2 = move
+
+            print(f'Computer Move: ({r1},{c1}) -> ({r2},{c2})')
+
+            board.move(r1, c1, r2, c2, ai)
+
+        if current == 'A':
+            current = 'D'
+        else:
+            current = 'A'
+
+    board.print_board()
+
+    winner = board.get_winner()
+
+    if winner == 'A':
+        print('Attackers Win!')
+    else:
+        print('Defenders Win!')
 b = Board()
 b.print_board()
-
-print(b.eval())
-
-score = b.alphabeta(depth=1, alpha=float('-inf'), beta=float('inf'), maxmin=True)
-print(score)
-
-b.grid[5][5] = '.'
-print(b.eval())
-
-
-
-score2 = b.alphabeta(depth=2, alpha=float('-inf'), beta=float('inf'), maxmin=True)
-print(score2)
+if __name__ == "__main__":
+    play_game()  
