@@ -26,13 +26,12 @@ class HnefataflGUI:
 
         self.size = 11
         self.selected_square = None
-        self.current_player = 'a'  
+        self.current_player = 'a'
         self.board_data = self.get_initial_board()
 
         self.canvas = tk.Canvas(root, bg="#333333")
         self.canvas.grid(row=0, column=0, sticky="nsew")
 
-        
         self.canvas.bind("<Button-1>", self.on_square_click)
         self.canvas.bind("<Configure>", lambda e: self.draw_board())
 
@@ -44,7 +43,7 @@ class HnefataflGUI:
     def ask_difficulty(self):
         choice = simpledialog.askinteger(
             "Difficulty",
-            "Choose Difficulty Level:\n1 - Easy (Depth 1)\n2 - Medium (Depth 3)\n3 - Hard (Depth 5)",
+            "Choose Difficulty Level:\n1 - Easy (Depth 1)\n2 - Medium (Depth 3)\n3 - Hard (Depth 5) \n default is easy",
             parent=self.root, minvalue=1, maxvalue=3
         )
         mapping = {1: 1, 2: 3, 3: 5}
@@ -54,12 +53,12 @@ class HnefataflGUI:
         """Asks the user to choose Attacker or Defender."""
         choice = simpledialog.askstring(
             "Side Selection",
-            "Choose your side:\n'a' - Attacker (Moves First)\n'd' - Defender (Protects King)",
+            "Choose your side:\n'a' - Attacker (Moves First)\n'd' - Defender (Protects King) \n default is attacker",
             parent=self.root
         )
         if choice and choice.lower().strip() in ['a', 'd']:
             return choice.lower().strip()
-        return 'a' 
+        return 'a'
 
     def get_initial_board(self):
         result = list(self.prolog.query("initial_board(B)"))
