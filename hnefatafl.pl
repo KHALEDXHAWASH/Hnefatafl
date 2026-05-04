@@ -82,7 +82,7 @@ inside_sandwich(Board, R, C, Piece) :-
         R_Up is R - 1, inbound(R_Up, C), cell(Board, R_Up, C, Enemy),
         R_Down is R + 1, inbound(R_Down, C), cell(Board, R_Down, C, Enemy)
     ).
-    
+
 isvalidmove(Board, R, C, NR, NC) :-
     cell(Board, R, C, Piece),
     Piece \= e,
@@ -91,7 +91,7 @@ isvalidmove(Board, R, C, NR, NC) :-
     ( corner(NR, NC) -> Piece = k ; true ),
     ( center(NR, NC) -> Piece = k ; true ),
     cell(Board, NR, NC, Dest),
-    Dest = e,
+    ( Dest = e ; (Piece = k, Dest = c) ),
     \+ inside_sandwich(Board, NR, NC, Piece),
     ( R =:= NR ->
         (NC > C -> Step = 1 ; Step = -1),
