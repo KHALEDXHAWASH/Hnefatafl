@@ -72,7 +72,17 @@ is_blocking_for_king(Board, R, C) :-
     ; cell(Board, R, C, a) -> true
     ; throne_or_corner(R, C)
     ).
-
+inside_sandwich(Board, R, C, Piece) :-
+    Piece \= k,
+    ( Piece = a -> Enemy = d ; Enemy = a ),
+    (
+        C_Left is C - 1, inbound(R, C_Left), cell(Board, R, C_Left, Enemy),
+        C_Right is C + 1, inbound(R, C_Right), cell(Board, R, C_Right, Enemy)
+    ;
+        R_Up is R - 1, inbound(R_Up, C), cell(Board, R_Up, C, Enemy),
+        R_Down is R + 1, inbound(R_Down, C), cell(Board, R_Down, C, Enemy)
+    ).
+    
 isvalidmove(Board, R, C, NR, NC) :-
     cell(Board, R, C, Piece),
     Piece \= e,
@@ -82,6 +92,7 @@ isvalidmove(Board, R, C, NR, NC) :-
     ( center(NR, NC) -> Piece = k ; true ),
     cell(Board, NR, NC, Dest),
     Dest = e,
+    \+ inside_sandwich(Board, NR, NC, Piece),
     ( R =:= NR ->
         (NC > C -> Step = 1 ; Step = -1),
         C1 is C + Step,
