@@ -175,7 +175,8 @@ class Board:
 
         if kr is None:
             return
-
+        if (kr, kc) in self.corners:
+            return
         attackers = 0
 
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
@@ -194,8 +195,7 @@ class Board:
             elif (nr, nc) == self.center:
                 attackers += 1
 
-            elif (nr, nc) in self.corners:
-                attackers += 1
+
 
         if kr == 0 or kr == self.size - 1 or kc == 0 or kc == self.size - 1:
             needed = 3
@@ -463,4 +463,4 @@ def play_game():
 b = Board()
 b.print_board()
 if __name__ == "__main__":
-    play_game()  
+    play_game()
