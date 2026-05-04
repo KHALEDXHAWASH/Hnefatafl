@@ -150,9 +150,11 @@ try_custodial(_OrigBoard, R, C, Piece, Enemy, (DR, DC), Acc, NewAcc) :-
       cell(Acc, R1, C1, Enemy),
       inbound(R2, C2),
       ( cell(Acc, R2, C2, Piece)
-      ; center(R2, C2)
-      ; corner(R2, C2)
-      )
+      ; ( center(R2, C2),
+    cell(Acc, R2, C2, e)
+   )
+; corner(R2, C2)
+)
     ->
         set_cell(Acc, R1, C1, e, NewAcc)
     ;
