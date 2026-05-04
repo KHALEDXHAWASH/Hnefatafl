@@ -17,13 +17,17 @@ class Board:
             ['.', '.', '.', '.', '.', 'A', '.', '.', '.', '.', '.'],
             ['C', '.', '.', 'A', 'A', 'A', 'A', 'A', '.', '.', 'C']
         ]
-    '''''
+
     def inside_sandwich(self, row, col, piece):
 
+        if piece == 'K':
+            return False
+
         if piece == 'A':
-            enemies = ['D', 'K']
+            enemies = ['D']
         else:
             enemies = ['A']
+
 
         left = right = up = down = False
 
@@ -39,7 +43,7 @@ class Board:
         if row + 1 < self.size:
             down = self.grid[row + 1][col] in enemies
         return (left and right) or (up and down)
-                  '''''
+
 
     def clone_board(self):
         newBoard = Board()
@@ -92,6 +96,9 @@ class Board:
         else:
             if self.grid[newrow][newcol] != '.':
                 return False
+
+        if self.inside_sandwich(newrow, newcol, piece):
+            return False
 
         if (newrow, newcol) == self.center and piece != 'K':
             return False
@@ -241,14 +248,13 @@ class Board:
 
                     while 0 <= nr < self.size and 0 <= nc < self.size:
 
-                        if not self.isvalidmove(r,c,nr,nc):
-                            break
 
-                        moves.append((r,c,nr, nc))
-                        """""
                         if self.grid[nr][nc] != '.':
                             break
-                        """""
+
+                        if self.isvalidmove(r, c, nr, nc):
+                            moves.append((r, c, nr, nc))
+
                         nr += dr
                         nc += dc
         return moves
